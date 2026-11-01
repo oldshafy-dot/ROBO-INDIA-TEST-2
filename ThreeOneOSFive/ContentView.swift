@@ -91,7 +91,7 @@ struct ContentView: View {
                 compactBottomButton(.installed)
                 compactBottomButton(.home)
             }
-            .frame(height: 76)
+            .frame(height: 60)
             .background(Color.black.opacity(0.94))
             .overlay(alignment: .top) {
                 Rectangle()
@@ -104,21 +104,19 @@ struct ContentView: View {
 
     private func compactBottomButton(_ section: AppSection) -> some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.16)) {
-                tabNavigation.select(section.rawValue)
-            }
+            tabNavigation.select(section.rawValue)
         } label: {
             VStack(spacing: 5) {
                 Image(systemName: section.systemImage)
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(Color(red: 0.20, green: 0.62, blue: 1.0))
 
                 Text(language.text(section.titleKey))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 76)
+            .frame(height: 60)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -392,7 +390,7 @@ struct MisbahHomeView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                             .background(.ultraThinMaterial, in: Capsule())
-                            .overlay(Capsule().stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1))
+                            .overlay(Capsule().stroke(Color.gray.opacity(0.55), lineWidth: 1))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 22)
@@ -409,13 +407,13 @@ struct MisbahHomeView: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 22)
-                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1)
+                            .stroke(Color.gray.opacity(0.55), lineWidth: 1)
                     )
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Version & Update")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color(red: 0.20, green: 0.68, blue: 1.0))
                             .padding(.bottom, 8)
 
                         deviceRow("Version", value: "V1.0")
@@ -435,13 +433,13 @@ struct MisbahHomeView: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
+                            .stroke(Color.gray.opacity(0.55), lineWidth: 1)
                     )
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Device Information")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color(red: 0.20, green: 0.68, blue: 1.0))
                             .padding(.bottom, 8)
 
                         deviceRow(
@@ -485,13 +483,13 @@ struct MisbahHomeView: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
+                            .stroke(Color.gray.opacity(0.55), lineWidth: 1)
                     )
 
                     VStack(spacing: 10) {
                         Text("Our Official Channel")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color(red: 0.20, green: 0.68, blue: 1.0))
 
                         Link(destination: telegramChannel) {
                             Label(
@@ -518,7 +516,7 @@ struct MisbahHomeView: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
+                                    .stroke(Color.gray.opacity(0.55), lineWidth: 1)
                             )
                         }
 
@@ -541,7 +539,7 @@ struct MisbahHomeView: View {
                                 ),
                                 in: RoundedRectangle(cornerRadius: 14)
                             )
-                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.55), lineWidth: 1))
                         }
                     }
                 }
