@@ -109,9 +109,7 @@ struct PatchProjectsView: View {
         HStack(spacing: 8) {
             ForEach(PatchCategory.allCases, id: \.self) { category in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.16)) {
-                        selectedCategory = category
-                    }
+                    selectedCategory = category
                 } label: {
                     Text(category.rawValue)
                         .font(.system(size: 15, weight: .bold))
@@ -444,6 +442,12 @@ struct PatchProjectsView: View {
                 } catch {
                     failedNames.append(option.name)
                 }
+            }
+
+            // Wait for the initial disk load to finish before importing.
+            // Otherwise importPackages() rejects the online patches while isBusy is true.
+            while store.isBusy {
+                try? await Task.sleep(nanoseconds: 100_000_000)
             }
 
             let imported = await store.importPackages(data: packageData)
