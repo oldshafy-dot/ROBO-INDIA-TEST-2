@@ -237,17 +237,19 @@ enum PatchProjectLibrary {
         summary: PatchPackageSummary,
         existingURL: URL?,
         origin: PatchPackageOrigin? = nil,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        allowTargetOverlap: Bool = false
     ) throws {
         let authorCopy = isAuthorCopy(
             packageID: summary.packageID,
             fileManager: fileManager
         )
-        if let occupiedPath = overlappingTargetPath(
-            in: decoded.project,
-            excludingPackageID: summary.packageID,
-            fileManager: fileManager
-        ) {
+        if !allowTargetOverlap,
+           let occupiedPath = overlappingTargetPath(
+                in: decoded.project,
+                excludingPackageID: summary.packageID,
+                fileManager: fileManager
+           ) {
             if decoded.project.isPrivate, !authorCopy {
                 throw PatchPackageError.privateOperationFailed
             }
