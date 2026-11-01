@@ -125,7 +125,8 @@ final class PatchProjectStore: ObservableObject {
                         summary: summary,
                         existingURL: existingURL,
                         password: nil,
-                        origin: nil
+                        origin: nil,
+                        allowTargetOverlap: true
                     )
                     imported += 1
                 } catch {
