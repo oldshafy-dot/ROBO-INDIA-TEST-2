@@ -93,7 +93,7 @@ struct ContentView: View {
                 compactBottomButton(.home)
             }
             .padding(3)
-            .frame(height: 68)
+            .frame(height: 54)
             .background(
                 RoundedRectangle(cornerRadius: 34, style: .continuous)
                     .fill(Color(red: 0.015, green: 0.025, blue: 0.055))
@@ -102,8 +102,8 @@ struct ContentView: View {
                 RoundedRectangle(cornerRadius: 34, style: .continuous)
                     .stroke(Color.white.opacity(0.10), lineWidth: 1)
             )
-            .padding(.horizontal, 48)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 52)
+            .padding(.bottom, 6)
             .zIndex(10)
         }
         .background(Color.black.ignoresSafeArea())
@@ -115,10 +115,10 @@ struct ContentView: View {
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: section.systemImage)
-                    .font(.system(size: 19, weight: .medium))
+                    .font(.system(size: 17, weight: .medium))
 
                 Text(section == .installed ? "Function" : "Account")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
             }
             .foregroundStyle(
                 section.rawValue == tabNavigation.selectedTab
@@ -126,7 +126,7 @@ struct ContentView: View {
                     : Color(red: 0.64, green: 0.69, blue: 0.82)
             )
             .frame(maxWidth: .infinity)
-            .frame(height: 62)
+            .frame(height: 48)
             .background(
                 section.rawValue == tabNavigation.selectedTab
                     ? Color(red: 0.15, green: 0.52, blue: 0.95)
