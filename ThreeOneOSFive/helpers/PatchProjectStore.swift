@@ -336,6 +336,30 @@ final class PatchProjectStore: ObservableObject {
         }
     }
 
+    /// Removes packages that were previously synchronized from the online patch
+    /// service but are no longer present there.
+    @discardableResult
+    func removeRemotePackagesNotIn(
+        repositoryURL: URL,
+        packageIdentifiers: Set<String>
+    ) -> Int {
+        let stale = items.filter { item in
+            guard let origin = item.origin else { return false }
+            return origin.repositoryURL == repositoryURL
+                && !packageIdentifiers.contains(origin.packageIdentifier)
+        }
+
+        for item in stale {
+            try? PatchProjectLibrary.delete(item)
+        }
+
+        if !stale.isEmpty {
+            reload()
+        }
+
+        return stale.count
+    }
+
     func synchronizeWorkspace(projectID: UUID, reportsSuccess: Bool = false) {
         guard let item = items.first(where: { $0.id == projectID }),
               item.summary.schemaVersion >= 2,
