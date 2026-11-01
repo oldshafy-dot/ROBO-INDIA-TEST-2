@@ -23,7 +23,10 @@ struct PatchProjectsView: View {
     private var ffIndiaItems: [PatchLibraryItem] {
         store.items.filter { item in
             let value = "\(item.packageURL.lastPathComponent) \(item.project?.name ?? "")".lowercased()
-            return value.contains("in body") || value.contains("in rag") || value.contains("in neck") || value.contains("in head") || value.contains("body hs") || value.contains("aim head") || value.contains("neck hs") || value.contains("magic hs") || value.contains("ffth") || value.contains("ff india") || value.contains("free fire india")
+            let isBGMIOrMax = value.contains("ffmax")
+                || value.contains("bgmi")
+                || value.contains("free fire max")
+            return !isBGMIOrMax
         }
     }
 
@@ -448,8 +451,8 @@ struct PatchProjectsView: View {
 
             if imported > 0 {
                 syncMessage = failedNames.isEmpty
-                    ? "Online patches updated ((imported) patches)."
-                    : "Updated (imported) patches. Some downloads failed."
+                    ? "Online patches updated (\(imported) patches)."
+                    : "Updated (\(imported) patches). Some downloads failed."
             } else if !packageData.isEmpty {
                 syncMessage = "Online patches were downloaded but could not be installed."
             } else {
