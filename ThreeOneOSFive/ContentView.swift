@@ -78,7 +78,7 @@ struct ContentView: View {
         .sheet(isPresented: $showLogs) {
             LogView()
         }
-        .patchStorePresentation(patchStore)
+        // .patchStorePresentation(patchStore)
         .repositoryStorePresentation(repositoryStore, patchStore: patchStore)
     }
 
