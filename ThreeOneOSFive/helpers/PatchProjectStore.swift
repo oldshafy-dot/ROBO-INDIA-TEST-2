@@ -447,7 +447,8 @@ final class PatchProjectStore: ObservableObject {
             decoded: decoded,
             summary: summary,
             existingURL: existingURL,
-            origin: origin
+            origin: origin,
+            allowTargetOverlap: allowTargetOverlap
         )
         return nil
     }
