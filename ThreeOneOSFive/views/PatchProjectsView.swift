@@ -22,7 +22,7 @@ struct PatchProjectsView: View {
     private var ffIndiaItems: [PatchLibraryItem] {
         store.items.filter { item in
             let value = "\(item.packageURL.lastPathComponent) \(item.project?.name ?? "")".lowercased()
-            return value.contains("body hs") || value.contains("aim head") || value.contains("neck hs") || value.contains("magic hs") || value.contains("ffth") || value.contains("ff india") || value.contains("free fire india")
+            return value.contains("in body") || value.contains("in rag") || value.contains("in neck") || value.contains("in head") || value.contains("body hs") || value.contains("aim head") || value.contains("neck hs") || value.contains("magic hs") || value.contains("ffth") || value.contains("ff india") || value.contains("free fire india")
         }
     }
 
@@ -318,10 +318,28 @@ struct PatchProjectsView: View {
         }
     }
 
-    private struct PatchArchiveManifest: Decodable {
-        let version: String?
+    private struct PatchOptionsResponse: Decodable {
+        let success: Bool
+        let categories: [PatchCategoryResponse]
+    }
+
+    private struct PatchCategoryResponse: Decodable {
+        let category: String
+        let name: String
+        let options: [RemotePatchOption]
+    }
+
+    private struct RemotePatchOption: Decodable {
+        let id: String
+        let category: String
+        let name: String
+        let sort_order: Int
+        let enabled: Bool
+        let has_file: Bool
+        let selectable: Bool
+        let file_name: String?
         let download_url: String?
-        let active: Bool?
+        let updated_at: String?
     }
 
     @MainActor
@@ -330,104 +348,80 @@ struct PatchProjectsView: View {
         isSyncing = true
         defer { isSyncing = false }
 
-        let manifestURLs = [
-            URL(string: "https://shafaykeyauthadmin.lovable.app/api/public/v1/patch/latest")!,
-            URL(string: "https://roboexternalauth.lovable.app/api/public/patch?game=free_fire")!
-        ]
+        do {
+            var request = URLRequest(
+                url: URL(string: "https://shafaykeyauthadmin.lovable.app/api/public/v1/patch/options")!
+            )
+            request.timeoutInterval = 30
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        var lastError = "Patch update could not be checked."
-
-        for manifestURL in manifestURLs {
-            do {
-                var request = URLRequest(url: manifestURL)
-                request.timeoutInterval = 20
-                request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-                let (data, response) = try await URLSession.shared.data(for: request)
-
-                guard let http = response as? HTTPURLResponse else {
-                    throw PatchSyncError.invalidResponse
-                }
-
-                guard (200..<300).contains(http.statusCode) else {
-                    throw PatchSyncError.http(http.statusCode)
-                }
-
-                let manifest = try JSONDecoder().decode(PatchArchiveManifest.self, from: data)
-
-                guard manifest.active != false else {
-                    throw PatchSyncError.inactive
-                }
-
-                guard let rawDownloadURL = manifest.download_url,
-                      let downloadURL = URL(string: rawDownloadURL),
-                      downloadURL.scheme == "https" else {
-                    throw PatchSyncError.missingDownloadURL
-                }
-
-                let (archiveData, archiveResponse) = try await URLSession.shared.data(from: downloadURL)
-
-                guard let archiveHTTP = archiveResponse as? HTTPURLResponse,
-                      (200..<300).contains(archiveHTTP.statusCode) else {
-                    throw PatchSyncError.archiveDownloadFailed
-                }
-
-                let tempRoot = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("robo-patches-\(UUID().uuidString)", isDirectory: true)
-                try FileManager.default.createDirectory(
-                    at: tempRoot,
-                    withIntermediateDirectories: true
-                )
-                defer { try? FileManager.default.removeItem(at: tempRoot) }
-
-                let archiveURL = tempRoot.appendingPathComponent("ROBO-PATCHES.zip")
-                try archiveData.write(to: archiveURL, options: .atomic)
-
-                let extractionRoot = tempRoot.appendingPathComponent("extracted", isDirectory: true)
-                try FileManager.default.createDirectory(
-                    at: extractionRoot,
-                    withIntermediateDirectories: true
-                )
-
-                let result = try ZIPArchiveExtractor.extract(
-                    archiveURL: archiveURL,
-                    into: extractionRoot
-                )
-
-                let packageURLs = try findPatchPackages(
-                    in: result.destinationURL,
-                    fileManager: .default
-                )
-
-                guard !packageURLs.isEmpty else {
-                    throw PatchSyncError.noPatchesFound
-                }
-
-                let packageData = try packageURLs.map { try Data(contentsOf: $0) }
-                let imported = await store.importPackages(data: packageData)
-
-                UserDefaults.standard.set(
-                    downloadURL.absoluteString,
-                    forKey: "robo.patch.archive.url"
-                )
-                UserDefaults.standard.set(
-                    manifest.version ?? "",
-                    forKey: "robo.patch.archive.version"
-                )
-
-                store.reload()
-                syncMessage = imported > 0
-                    ? "Patch update installed (\(imported) patches)."
-                    : "Patch archive checked."
-                return
-
-            } catch {
-                lastError = error.localizedDescription
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse,
+                  (200..<300).contains(http.statusCode) else {
+                throw PatchSyncError.http((response as? HTTPURLResponse)?.statusCode ?? -1)
             }
-        }
 
-        store.reload()
-        syncMessage = lastError
+            let payload = try JSONDecoder().decode(PatchOptionsResponse.self, from: data)
+            guard payload.success else {
+                throw PatchSyncError.invalidResponse
+            }
+
+            let allOptions = payload.categories.flatMap(\.options)
+            let availableOptions = allOptions
+                .filter { $0.enabled && $0.has_file && $0.selectable }
+                .sorted { $0.sort_order < $1.sort_order }
+
+            guard !availableOptions.isEmpty else {
+                store.reload()
+                syncMessage = "No online patches are available."
+                return
+            }
+
+            var packageData: [Data] = []
+            var failedNames: [String] = []
+
+            for option in availableOptions {
+                guard let rawURL = option.download_url,
+                      let url = URL(string: rawURL),
+                      url.scheme == "https" else {
+                    failedNames.append(option.name)
+                    continue
+                }
+
+                do {
+                    var downloadRequest = URLRequest(url: url)
+                    downloadRequest.timeoutInterval = 60
+                    downloadRequest.setValue("application/octet-stream", forHTTPHeaderField: "Accept")
+
+                    let (patchData, patchResponse) = try await URLSession.shared.data(for: downloadRequest)
+                    guard let patchHTTP = patchResponse as? HTTPURLResponse,
+                          (200..<300).contains(patchHTTP.statusCode),
+                          !patchData.isEmpty else {
+                        throw PatchSyncError.archiveDownloadFailed
+                    }
+
+                    packageData.append(patchData)
+                } catch {
+                    failedNames.append(option.name)
+                }
+            }
+
+            let imported = await store.importPackages(data: packageData)
+            store.reload()
+
+            if imported > 0 {
+                syncMessage = failedNames.isEmpty
+                    ? "Online patches updated ((imported) patches)."
+                    : "Updated (imported) patches. Some downloads failed."
+            } else if !packageData.isEmpty {
+                syncMessage = "Online patches were downloaded but could not be installed."
+            } else {
+                syncMessage = "Online patch downloads failed."
+            }
+        } catch {
+            store.reload()
+            syncMessage = error.localizedDescription
+        }
     }
 
     private enum PatchSyncError: LocalizedError {
