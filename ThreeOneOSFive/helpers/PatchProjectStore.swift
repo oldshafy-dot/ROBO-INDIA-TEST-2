@@ -102,6 +102,46 @@ final class PatchProjectStore: ObservableObject {
         }
     }
 
+    @discardableResult
+    func importPackages(data packages: [Data]) async -> Int {
+        guard !isBusy, !packages.isEmpty else { return 0 }
+        isBusy = true
+
+        let count = await Task.detached(priority: .userInitiated) { [weak self] () -> Int in
+            var imported = 0
+
+            for data in packages {
+                do {
+                    let summary = try PatchPackageCodec.inspect(data)
+                    try PatchProjectLibrary.validateImportIsNew(data: data, summary: summary)
+                    let existingURL = await self?.existingPackageURL(for: summary.packageID)
+
+                    if summary.isPasswordProtected {
+                        // Automatic archive imports require non-password-protected packages.
+                        continue
+                    }
+
+                    _ = try Self.persistImportedPackage(
+                        data: data,
+                        summary: summary,
+                        existingURL: existingURL,
+                        password: nil,
+                        origin: nil
+                    )
+                    imported += 1
+                } catch {
+                    continue
+                }
+            }
+
+            return imported
+        }.value
+
+        reload()
+        isBusy = false
+        return count
+    }
+
     func importPackage(at sourceURL: URL) {
         guard !isBusy else { return }
         isBusy = true
