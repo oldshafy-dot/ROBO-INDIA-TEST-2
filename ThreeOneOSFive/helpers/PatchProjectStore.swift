@@ -421,8 +421,7 @@ final class PatchProjectStore: ObservableObject {
                     data: data,
                     summary: summary,
                     existingURL: existingURL,
-                    origin: origin,
-                    allowTargetOverlap: allowTargetOverlap
+                    origin: origin
                 )
             }
             let decoded = try PatchPackageCodec.decode(data, password: password)
@@ -433,7 +432,8 @@ final class PatchProjectStore: ObservableObject {
                     decoded: decoded,
                     summary: summary,
                     existingURL: existingURL,
-                    origin: origin
+                    origin: origin,
+                    allowTargetOverlap: allowTargetOverlap
                 )
             } catch {
                 try? PatchKeyStore.delete(for: summary)
