@@ -38,8 +38,12 @@ struct ThreeOneOSFiveApp: App {
             ZStack {
                 if licenseAuth.isAuthorized {
                     if let requiredUpdate = requiredPatchUpdate.offer {
-                        RequiredPatchUpdateView(offer: requiredUpdate) {
-                            requiredPatchUpdate.openDownload()
+                        RequiredPatchUpdateView(
+                            offer: requiredUpdate,
+                            isInstalling: requiredPatchUpdate.isInstalling,
+                            statusMessage: requiredPatchUpdate.statusMessage
+                        ) {
+                            requiredPatchUpdate.install(patchStore: patchStore)
                         }
                     } else {
                         ContentView()
@@ -237,13 +241,15 @@ struct RequiredPatchUpdateOffer: Equatable {
 @MainActor
 final class RequiredPatchUpdateManager: ObservableObject {
     @Published private(set) var offer: RequiredPatchUpdateOffer?
+    @Published private(set) var isInstalling = false
+    @Published private(set) var statusMessage: String?
 
     private let endpoint = URL(string: "https://shafaykeyauthadmin.lovable.app/api/public/v1/patch/latest")!
     private let installedVersionKey = "robo.required.patch.installed.version"
     private var isRefreshing = false
 
     func refresh() {
-        guard !isRefreshing else { return }
+        guard !isRefreshing, !isInstalling else { return }
         isRefreshing = true
 
         Task {
@@ -278,16 +284,129 @@ final class RequiredPatchUpdateManager: ObservableObject {
                     notes: payload.notes,
                     downloadURL: url
                 )
+                statusMessage = nil
             } catch {
-                // Network failures do not block the existing app.
+                statusMessage = "Could not check for the required update."
             }
         }
     }
 
-    func openDownload() {
-        guard let offer else { return }
-        UserDefaults.standard.set(offer.version, forKey: installedVersionKey)
-        UIApplication.shared.open(offer.downloadURL)
+    func install(patchStore: PatchProjectStore) {
+        guard let offer, !isInstalling else { return }
+
+        isInstalling = true
+        statusMessage = "Downloading update…"
+
+        Task {
+            do {
+                let (data, response) = try await URLSession.shared.data(from: offer.downloadURL)
+                guard let http = response as? HTTPURLResponse,
+                      (200..<300).contains(http.statusCode) else {
+                    throw UpdateInstallError.downloadFailed
+                }
+
+                statusMessage = "Installing patches…"
+
+                let tempRoot = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("robo-required-update-\(UUID().uuidString)", isDirectory: true)
+                try FileManager.default.createDirectory(
+                    at: tempRoot,
+                    withIntermediateDirectories: true
+                )
+                defer { try? FileManager.default.removeItem(at: tempRoot) }
+
+                let archiveURL = tempRoot.appendingPathComponent("ROBO-PATCHES.zip")
+                try data.write(to: archiveURL, options: .atomic)
+
+                let extractionRoot = tempRoot.appendingPathComponent("extracted", isDirectory: true)
+                try FileManager.default.createDirectory(
+                    at: extractionRoot,
+                    withIntermediateDirectories: true
+                )
+
+                let result = try ZIPArchiveExtractor.extract(
+                    archiveURL: archiveURL,
+                    into: extractionRoot
+                )
+
+                let packageURLs = try findPatchPackages(
+                    in: result.destinationURL,
+                    fileManager: .default
+                )
+
+                guard !packageURLs.isEmpty else {
+                    throw UpdateInstallError.noPatchesFound
+                }
+
+                var imported = 0
+
+                for packageURL in packageURLs {
+                    let packageData = try Data(contentsOf: packageURL)
+
+                    while patchStore.isBusy {
+                        try await Task.sleep(nanoseconds: 150_000_000)
+                    }
+
+                    guard patchStore.importPackage(data: packageData) else {
+                        throw UpdateInstallError.patchImportFailed
+                    }
+
+                    while patchStore.isBusy {
+                        try await Task.sleep(nanoseconds: 150_000_000)
+                    }
+
+                    if patchStore.passwordRequest != nil {
+                        throw UpdateInstallError.passwordProtectedPackage
+                    }
+
+                    imported += 1
+                }
+
+                guard imported > 0 else {
+                    throw UpdateInstallError.noPatchesFound
+                }
+
+                patchStore.reload()
+                UserDefaults.standard.set(offer.version, forKey: installedVersionKey)
+                statusMessage = "Update installed successfully."
+                isInstalling = false
+                self.offer = nil
+            } catch {
+                statusMessage = error.localizedDescription
+                isInstalling = false
+            }
+        }
+    }
+
+    private func findPatchPackages(
+        in root: URL,
+        fileManager: FileManager
+    ) throws -> [URL] {
+        guard let enumerator = fileManager.enumerator(
+            at: root,
+            includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
+
+        var result: [URL] = []
+
+        for case let url as URL in enumerator {
+            let values = try url.resourceValues(
+                forKeys: [.isRegularFileKey, .isSymbolicLinkKey]
+            )
+
+            guard values.isRegularFile == true,
+                  values.isSymbolicLink != true,
+                  url.pathExtension.lowercased() == "3105" else {
+                continue
+            }
+
+            result.append(url)
+        }
+
+        return result
     }
 
     private func compareVersions(_ lhs: String, _ rhs: String) -> ComparisonResult {
@@ -298,6 +417,7 @@ final class RequiredPatchUpdateManager: ObservableObject {
         for index in 0..<count {
             let l = index < left.count ? left[index] : 0
             let r = index < right.count ? right[index] : 0
+
             if l != r {
                 return l < r ? .orderedAscending : .orderedDescending
             }
@@ -319,20 +439,45 @@ final class RequiredPatchUpdateManager: ObservableObject {
             case downloadURL = "download_url"
         }
     }
+
+    private enum UpdateInstallError: LocalizedError {
+        case downloadFailed
+        case noPatchesFound
+        case patchImportFailed
+        case passwordProtectedPackage
+
+        var errorDescription: String? {
+            switch self {
+            case .downloadFailed:
+                return "The update could not be downloaded."
+            case .noPatchesFound:
+                return "ROBO-PATCHES.zip does not contain any .3105 patches."
+            case .patchImportFailed:
+                return "A patch could not be imported."
+            case .passwordProtectedPackage:
+                return "A patch package requires a password and could not be installed automatically."
+            }
+        }
+    }
 }
 
 struct RequiredPatchUpdateView: View {
     let offer: RequiredPatchUpdateOffer
-    let onDownload: () -> Void
+    let isInstalling: Bool
+    let statusMessage: String?
+    let onInstall: () -> Void
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
+            StarfieldBackground().ignoresSafeArea()
 
             VStack(spacing: 18) {
-                Image(systemName: "arrow.down.circle.fill")
+                Image(systemName: isInstalling ? "arrow.down.circle.fill" : "arrow.down.circle.fill")
                     .font(.system(size: 54))
-                    .foregroundStyle(Color(red: 0.25, green: 0.68, blue: 1.0))
+                    .foregroundStyle(
+                        Color(red: 0.25, green: 0.68, blue: 1.0)
+                    )
 
                 Text("Required Update")
                     .font(.system(size: 27, weight: .bold))
@@ -350,18 +495,40 @@ struct RequiredPatchUpdateView: View {
                         .foregroundStyle(.white.opacity(0.58))
                 }
 
-                Button(action: onDownload) {
-                    Text("Download & Install")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(
-                            Color(red: 0.16, green: 0.55, blue: 0.95),
-                            in: RoundedRectangle(cornerRadius: 12)
-                        )
+                if let statusMessage {
+                    Text(statusMessage)
+                        .font(.system(size: 13, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.white.opacity(0.72))
+                }
+
+                Button(action: onInstall) {
+                    HStack(spacing: 8) {
+                        if isInstalling {
+                            ProgressView()
+                                .tint(.white)
+                        }
+
+                        Text(isInstalling ? "Installing…" : "Download & Install")
+                            .font(.system(size: 15, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.12, green: 0.45, blue: 0.82),
+                                Color(red: 0.22, green: 0.68, blue: 1.0)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        in: RoundedRectangle(cornerRadius: 12)
+                    )
                 }
                 .buttonStyle(.plain)
+                .disabled(isInstalling)
             }
             .padding(24)
         }
