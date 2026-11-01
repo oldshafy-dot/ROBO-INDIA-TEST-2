@@ -22,7 +22,7 @@ struct PatchProjectsView: View {
     private var ffIndiaItems: [PatchLibraryItem] {
         store.items.filter { item in
             let value = "\(item.packageURL.lastPathComponent) \(item.project?.name ?? "")".lowercased()
-            return value.contains("ffth") || value.contains("ff india") || value.contains("free fire india")
+            return value.contains("body hs") || value.contains("aim head") || value.contains("neck hs") || value.contains("magic hs") || value.contains("ffth") || value.contains("ff india") || value.contains("free fire india")
         }
     }
 
@@ -357,14 +357,9 @@ struct PatchProjectsView: View {
                 }
 
                 let defaults = UserDefaults.standard
-                let savedURL = defaults.string(forKey: "robo.patch.archive.url")
-                let savedVersion = defaults.string(forKey: "robo.patch.archive.version")
-                if savedURL == downloadURL.absoluteString,
-                   savedVersion == manifest.version,
-                   !store.items.isEmpty {
-                    return
-                }
 
+                // Always refresh the archive when Functions opens.
+                // The admin may replace the ZIP without changing its version/URL.
                 let (archiveData, archiveResponse) = try await URLSession.shared.data(from: downloadURL)
                 guard let archiveHTTP = archiveResponse as? HTTPURLResponse,
                       (200..<300).contains(archiveHTTP.statusCode) else {
@@ -405,11 +400,11 @@ struct PatchProjectsView: View {
                 defaults.set(downloadURL.absoluteString, forKey: "robo.patch.archive.url")
                 defaults.set(manifest.version ?? "", forKey: "robo.patch.archive.version")
 
-                if imported > 0 {
-                    await MainActor.run {
-                        store.reload()
-                        syncMessage = "Patch update installed."
-                    }
+                await MainActor.run {
+                    store.reload()
+                    syncMessage = imported > 0
+                        ? "Patch update installed."
+                        : "Patch archive checked."
                 }
                 return
             } catch {
