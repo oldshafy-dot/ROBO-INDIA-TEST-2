@@ -348,9 +348,14 @@ final class PatchProjectStore: ObservableObject {
         packageIdentifiers: Set<String>
     ) -> Int {
         let stale = items.filter { item in
-            guard let origin = item.origin else { return false }
-            return origin.repositoryURL == repositoryURL
-                && !packageIdentifiers.contains(origin.packageIdentifier)
+            guard let origin = item.origin else {
+                // Only the online patch catalogue is authoritative for this
+                // screen. Any package that was imported locally but is not
+                // tracked by the current online source must be removed.
+                return true
+            }
+            return origin.repositoryURL != repositoryURL
+                || !packageIdentifiers.contains(origin.packageIdentifier)
         }
 
         for item in stale {
