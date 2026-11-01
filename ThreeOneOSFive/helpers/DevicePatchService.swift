@@ -2,6 +2,13 @@ import Foundation
 
 enum DevicePatchService {
     static func apply(project: PatchProject) throws -> PatchTransactionReceipt {
+        // Re-applying the same patch is allowed. If its previous transaction is
+        // still active, restore that transaction first so a fresh apply/receipt
+        // can be created instead of returning projectAlreadyApplied.
+        if let existingReceipt = latestReceipt(projectID: project.id) {
+            try restore(receipt: existingReceipt)
+        }
+
         let bundleIDs = orderedBundleIdentifiers(in: project)
         return try withResolvedContainers(bundleIDs: bundleIDs) { roots in
             try PatchTransaction.apply(
