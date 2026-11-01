@@ -83,26 +83,28 @@ struct ContentView: View {
     }
 
     private var compactLayout: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             sectionContent(selectedVisibleSection)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(edges: .bottom)
 
             HStack(spacing: 0) {
                 compactBottomButton(.installed)
                 compactBottomButton(.home)
             }
-            .padding(4)
-            .frame(height: 96)
+            .padding(3)
+            .frame(height: 68)
             .background(
-                RoundedRectangle(cornerRadius: 48, style: .continuous)
+                RoundedRectangle(cornerRadius: 34, style: .continuous)
                     .fill(Color(red: 0.015, green: 0.025, blue: 0.055))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 48, style: .continuous)
+                RoundedRectangle(cornerRadius: 34, style: .continuous)
                     .stroke(Color.white.opacity(0.10), lineWidth: 1)
             )
-            .padding(.horizontal, 45)
-            .padding(.bottom, 14)
+            .padding(.horizontal, 48)
+            .padding(.bottom, 8)
+            .zIndex(10)
         }
         .background(Color.black.ignoresSafeArea())
     }
@@ -113,10 +115,10 @@ struct ContentView: View {
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: section.systemImage)
-                    .font(.system(size: 23, weight: .medium))
+                    .font(.system(size: 19, weight: .medium))
 
                 Text(section == .installed ? "Function" : "Account")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
             }
             .foregroundStyle(
                 section.rawValue == tabNavigation.selectedTab
@@ -124,7 +126,7 @@ struct ContentView: View {
                     : Color(red: 0.64, green: 0.69, blue: 0.82)
             )
             .frame(maxWidth: .infinity)
-            .frame(height: 82)
+            .frame(height: 62)
             .background(
                 section.rawValue == tabNavigation.selectedTab
                     ? Color(red: 0.15, green: 0.52, blue: 0.95)
@@ -858,7 +860,7 @@ struct MisbahAuthorizationView: View {
                         + Text("INDIA").foregroundColor(
                             Color(red: 0.12, green: 0.48, blue: 0.95)
                         ))
-                        .font(.system(size: 50, weight: .bold, design: .rounded))
+                        .font(.system(size: 38, weight: .bold, design: .rounded))
                         .minimumScaleFactor(0.7)
                         .lineLimit(1)
 
@@ -882,7 +884,7 @@ struct MisbahAuthorizationView: View {
                                 .accessibilityLabel("License key")
                         }
                         .padding(.horizontal, 18)
-                        .frame(height: 72)
+                        .frame(height: 58)
                         .background(
                             Color(red: 0.055, green: 0.055, blue: 0.065),
                             in: Capsule()
@@ -906,7 +908,7 @@ struct MisbahAuthorizationView: View {
                                 keyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.45 : 1
                             ))
                             .frame(maxWidth: .infinity)
-                            .frame(height: 72)
+                            .frame(height: 58)
                             .background(
                                 LinearGradient(
                                     colors: [
@@ -931,7 +933,7 @@ struct MisbahAuthorizationView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    .padding(.horizontal, 54)
+                    .padding(.horizontal, 42)
 
                     Link(destination: telegramChannel) {
                         HStack(spacing: 10) {
@@ -946,7 +948,7 @@ struct MisbahAuthorizationView: View {
                                 .foregroundStyle(.white.opacity(0.7))
                         }
                         .padding(.horizontal, 18)
-                        .frame(height: 54)
+                        .frame(height: 46)
                         .background(Color.white.opacity(0.04), in: Capsule())
                         .overlay(Capsule().stroke(Color.white.opacity(0.10), lineWidth: 1))
                     }
