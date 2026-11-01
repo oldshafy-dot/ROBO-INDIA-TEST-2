@@ -91,13 +91,18 @@ struct ContentView: View {
                 compactBottomButton(.installed)
                 compactBottomButton(.home)
             }
-            .frame(height: 60)
-            .background(Color.black.opacity(0.94))
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Color.white.opacity(0.22))
-                    .frame(height: 1)
-            }
+            .padding(4)
+            .frame(height: 96)
+            .background(
+                RoundedRectangle(cornerRadius: 48, style: .continuous)
+                    .fill(Color(red: 0.015, green: 0.025, blue: 0.055))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 48, style: .continuous)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
+            )
+            .padding(.horizontal, 45)
+            .padding(.bottom, 14)
         }
         .background(Color.black.ignoresSafeArea())
     }
@@ -106,18 +111,27 @@ struct ContentView: View {
         Button {
             tabNavigation.select(section.rawValue)
         } label: {
-            VStack(spacing: 5) {
+            HStack(spacing: 14) {
                 Image(systemName: section.systemImage)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.20, green: 0.62, blue: 1.0))
+                    .font(.system(size: 23, weight: .medium))
 
-                Text(language.text(section.titleKey))
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white)
+                Text(section == .installed ? "Function" : "Account")
+                    .font(.system(size: 20, weight: .semibold))
             }
+            .foregroundStyle(
+                section.rawValue == tabNavigation.selectedTab
+                    ? Color.white
+                    : Color(red: 0.64, green: 0.69, blue: 0.82)
+            )
             .frame(maxWidth: .infinity)
-            .frame(height: 60)
-            .contentShape(Rectangle())
+            .frame(height: 82)
+            .background(
+                section.rawValue == tabNavigation.selectedTab
+                    ? Color(red: 0.15, green: 0.52, blue: 0.95)
+                    : Color.clear,
+                in: Capsule()
+            )
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(
@@ -830,71 +844,48 @@ struct MisbahAuthorizationView: View {
     @EnvironmentObject private var license: MisbahLicenseManager
     @State private var keyText = ""
 
-    private let telegramChannel = URL(string: "https://t.me/roboios")!
+    private let telegramChannel = URL(string: "https://t.me/roboresellers")!
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            StarfieldBackground().ignoresSafeArea()
+
             ScrollView {
-                VStack(spacing: 22) {
-                    VStack(spacing: 5) {
-                        (Text("ROBO ").foregroundColor(.white)
-                            + Text("INDIA").foregroundColor(Color(red: 0.20, green: 0.68, blue: 1.0)))
-                            .font(.system(size: 32, weight: .heavy, design: .rounded))
-                            .minimumScaleFactor(0.7)
-                            .lineLimit(1)
+                VStack(spacing: 24) {
+                    Spacer(minLength: 190)
 
-                        Text("Developer Shafay")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.82))
-                    }
-                    .padding(.top, 4)
+                    (Text("ROBO ").foregroundColor(.white)
+                        + Text("INDIA").foregroundColor(
+                            Color(red: 0.12, green: 0.48, blue: 0.95)
+                        ))
+                        .font(.system(size: 50, weight: .bold, design: .rounded))
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(1)
 
-                    VStack(alignment: .leading, spacing: 16) {
-                        Label(
-                            "Key Authorization",
-                            systemImage: "key.horizontal"
-                        )
-                        .font(.system(size: 19, weight: .bold))
-                        .foregroundStyle(.white)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("LICENSE KEY")
+                            .font(.system(size: 14, weight: .medium))
+                            .tracking(2.2)
+                            .foregroundStyle(Color(red: 0.55, green: 0.59, blue: 0.70))
 
-                        HStack(spacing: 10) {
-                            TextField(
-                                "Enter or paste your key",
-                                text: $keyText
-                            )
-                            .textInputAutocapitalization(.characters)
-                            .autocorrectionDisabled()
-                            .font(.system(size: 15))
-                            .foregroundStyle(.white)
-                            .tint(.white)
-                            .accessibilityLabel("License key")
+                        HStack(spacing: 12) {
+                            Image(systemName: "key.fill")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundStyle(Color(red: 0.48, green: 0.53, blue: 0.65))
 
-                            Button {
-                                if let pasted = UIPasteboard.general.string {
-                                    keyText = pasted.trimmingCharacters(
-                                        in: .whitespacesAndNewlines
-                                    )
-                                }
-                            } label: {
-                                Label(
-                                    "Paste",
-                                    systemImage: "doc.on.clipboard"
-                                )
-                                .font(.system(size: 14, weight: .bold))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
-                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 11))
-                                .overlay(RoundedRectangle(cornerRadius: 11).stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1))
+                            TextField("Enter license key", text: $keyText)
+                                .textInputAutocapitalization(.characters)
+                                .autocorrectionDisabled()
+                                .font(.system(size: 18, weight: .medium))
                                 .foregroundStyle(.white)
-                            }
+                                .tint(.white)
+                                .accessibilityLabel("License key")
                         }
-                        .padding(12)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 15))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1)
+                        .padding(.horizontal, 18)
+                        .frame(height: 72)
+                        .background(
+                            Color(red: 0.055, green: 0.055, blue: 0.065),
+                            in: Capsule()
                         )
 
                         Button {
@@ -902,139 +893,69 @@ struct MisbahAuthorizationView: View {
                                 await license.activate(key: keyText)
                             }
                         } label: {
-                            HStack(spacing: 9) {
+                            HStack(spacing: 10) {
                                 if license.isVerifying {
-                                    ProgressView()
-                                        .tint(.white)
+                                    ProgressView().tint(.white)
                                 }
-
-                                Text(
-                                    license.isVerifying
-                                        ? "Verifying..."
-                                        : "Activate Key"
-                                )
-                                .font(.system(size: 17, weight: .bold))
+                                Image(systemName: "key.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                                Text(license.isVerifying ? "Verifying..." : "Activate")
+                                    .font(.system(size: 18, weight: .semibold))
                             }
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.white.opacity(
+                                keyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.45 : 1
+                            ))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 15)
+                            .frame(height: 72)
                             .background(
                                 LinearGradient(
                                     colors: [
-                                        Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.30),
-                                        Color.white.opacity(0.08)
+                                        Color(red: 0.05, green: 0.34, blue: 0.55),
+                                        Color(red: 0.03, green: 0.20, blue: 0.58)
                                     ],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 ),
-                                in: RoundedRectangle(cornerRadius: 14)
+                                in: Capsule()
                             )
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(red: 0.20, green: 0.58, blue: 1.0).opacity(0.52), lineWidth: 1))
                         }
                         .disabled(
                             license.isVerifying
-                                || keyText.trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                ).isEmpty
+                                || keyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                         )
 
                         if let message = license.message {
                             Text(message)
                                 .font(.footnote.weight(.medium))
                                 .foregroundStyle(.red)
-                                .fixedSize(
-                                    horizontal: false,
-                                    vertical: true
-                                )
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    .padding(18)
-                    .background(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.34),
-                                Color.white.opacity(0.07)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        in: RoundedRectangle(cornerRadius: 22)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 22)
-                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
-                    )
-                    .shadow(
-                        color: Color.white.opacity(0.04),
-                        radius: 15,
-                        y: 6
-                    )
+                    .padding(.horizontal, 54)
 
-                    VStack(spacing: 12) {
-                        Text("Our Official Channel")
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundStyle(.white)
-
-                        Link(destination: telegramChannel) {
-                            HStack(spacing: 12) {
-                                Image(systemName: "paperplane.fill")
-                                    .font(.system(size: 27))
-                                    .foregroundStyle(
-                                        Color(
-                                            red: 0.10,
-                                            green: 0.65,
-                                            blue: 0.38
-                                        )
-                                    )
-
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text("Official Telegram Channel")
-                                        .font(
-                                            .system(
-                                                size: 15,
-                                                weight: .semibold
-                                            )
-                                        )
-                                        .foregroundStyle(.white)
-
-                                    Text("t.me/roboios")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(.white.opacity(0.72))
-                                }
-
-                                Spacer()
-
-                                Image(systemName: "arrow.up.right")
-                                    .foregroundStyle(.white)
-                            }
-                            .padding(14)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 15))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .stroke(
-                                        Color.gray.opacity(0.55),
-                                        lineWidth: 1
-                                    )
-                            )
+                    Link(destination: telegramChannel) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(Color(red: 0.18, green: 0.62, blue: 1.0))
+                            Text("Robo Resellers")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .foregroundStyle(.white.opacity(0.7))
                         }
-
+                        .padding(.horizontal, 18)
+                        .frame(height: 54)
+                        .background(Color.white.opacity(0.04), in: Capsule())
+                        .overlay(Capsule().stroke(Color.white.opacity(0.10), lineWidth: 1))
                     }
+                    .padding(.horizontal, 54)
 
-                    (Text("ROBO ").foregroundColor(.white)
-                        + Text("INDIA").foregroundColor(Color(red: 0.20, green: 0.68, blue: 1.0))
-                        + Text("  •  Secure License Access").foregroundColor(.white.opacity(0.72)))
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.72))
-                        .padding(.top, 2)
+                    Spacer(minLength: 80)
                 }
-                .padding(20)
-                .frame(maxWidth: 520)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, minHeight: UIScreen.main.bounds.height)
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.clear)
         }
-        .background(Color.clear)
-        .preferredColorScheme(ColorScheme.dark)
     }
 }
