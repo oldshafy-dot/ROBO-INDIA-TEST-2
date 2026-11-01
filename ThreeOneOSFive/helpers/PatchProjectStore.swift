@@ -103,7 +103,10 @@ final class PatchProjectStore: ObservableObject {
     }
 
     @discardableResult
-    func importPackages(data packages: [Data]) async -> Int {
+    func importPackages(
+        data packages: [Data],
+        origins: [PatchPackageOrigin] = []
+    ) async -> Int {
         guard !isBusy, !packages.isEmpty else { return 0 }
         isBusy = true
 
@@ -112,8 +115,9 @@ final class PatchProjectStore: ObservableObject {
         let count = await Task.detached(priority: .userInitiated) {
             var imported = 0
 
-            for data in packages {
+            for (index, data) in packages.enumerated() {
                 do {
+                    let origin = index < origins.count ? origins[index] : nil
                     let summary = try PatchPackageCodec.inspect(data)
                     if summary.isPasswordProtected {
                         continue
@@ -125,7 +129,7 @@ final class PatchProjectStore: ObservableObject {
                         summary: summary,
                         existingURL: existingURL,
                         password: nil,
-                        origin: nil,
+                        origin: origin,
                         allowTargetOverlap: true
                     )
                     imported += 1
