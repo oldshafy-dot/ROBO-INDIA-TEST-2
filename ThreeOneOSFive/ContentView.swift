@@ -311,9 +311,7 @@ struct MisbahHomeView: View {
 
     let onOpenSettings: () -> Void
 
-    private let whatsappGroup = URL(
-        string: "https://chat.whatsapp.com/GYAkNlKXIqB4i2FxOuLxQW?s=cl&p=i&mlu=4&ilr=4&iam=2"
-    )!
+    private let telegramChannel = URL(string: "https://t.me/roboios")!
 
     var body: some View {
         NavigationStack {
@@ -366,14 +364,24 @@ struct MisbahHomeView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                             .background(.ultraThinMaterial, in: Capsule())
-                            .overlay(Capsule().stroke(Color.gray.opacity(0.60), lineWidth: 1))
+                            .overlay(Capsule().stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 22)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22))
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.34),
+                                Color.white.opacity(0.07)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        in: RoundedRectangle(cornerRadius: 22)
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 22)
-                            .stroke(Color.gray.opacity(0.60), lineWidth: 1)
+                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1)
                     )
 
                     VStack(alignment: .leading, spacing: 0) {
@@ -386,10 +394,20 @@ struct MisbahHomeView: View {
                         deviceRow("Update System", value: "Required Update", last: true)
                     }
                     .padding(16)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.28),
+                                Color.white.opacity(0.07)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        in: RoundedRectangle(cornerRadius: 20)
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.gray.opacity(0.55), lineWidth: 1)
+                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
                     )
 
                     VStack(alignment: .leading, spacing: 0) {
@@ -426,10 +444,20 @@ struct MisbahHomeView: View {
                         )
                     }
                     .padding(16)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.28),
+                                Color.white.opacity(0.07)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        in: RoundedRectangle(cornerRadius: 20)
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.gray.opacity(0.55), lineWidth: 1)
+                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
                     )
 
                     VStack(spacing: 10) {
@@ -437,10 +465,10 @@ struct MisbahHomeView: View {
                             .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(.white)
 
-                        Link(destination: whatsappGroup) {
+                        Link(destination: telegramChannel) {
                             Label(
-                                "Join our WhatsApp group",
-                                systemImage: "message.circle.fill"
+                                "Official Telegram Channel",
+                                systemImage: "paperplane.fill"
                             )
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.white)
@@ -449,10 +477,20 @@ struct MisbahHomeView: View {
                                 alignment: .leading
                             )
                             .padding(14)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+                            .background(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.30),
+                                        Color.white.opacity(0.08)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                                in: RoundedRectangle(cornerRadius: 14)
+                            )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color.gray.opacity(0.55), lineWidth: 1)
+                                    .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
                             )
                         }
 
@@ -464,8 +502,18 @@ struct MisbahHomeView: View {
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(13)
-                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
-                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.60), lineWidth: 1))
+                                .background(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.30),
+                                        Color.white.opacity(0.08)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                                in: RoundedRectangle(cornerRadius: 14)
+                            )
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1))
                         }
                     }
                 }
@@ -756,9 +804,7 @@ struct MisbahAuthorizationView: View {
     @EnvironmentObject private var license: MisbahLicenseManager
     @State private var keyText = ""
 
-    private let whatsappGroup = URL(
-        string: "https://chat.whatsapp.com/GYAkNlKXIqB4i2FxOuLxQW?s=cl&p=i&mlu=4&ilr=4&iam=2"
-    )!
+    private let telegramChannel = URL(string: "https://t.me/roboios")!
 
     var body: some View {
         ZStack {
@@ -814,7 +860,7 @@ struct MisbahAuthorizationView: View {
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 10)
                                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 11))
-                                .overlay(RoundedRectangle(cornerRadius: 11).stroke(Color.gray.opacity(0.60), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 11).stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1))
                                 .foregroundStyle(.white)
                             }
                         }
@@ -822,7 +868,7 @@ struct MisbahAuthorizationView: View {
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 15))
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.gray.opacity(0.60), lineWidth: 1)
+                                .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.42), lineWidth: 1)
                         )
 
                         Button {
@@ -846,7 +892,17 @@ struct MisbahAuthorizationView: View {
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+                            .background(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.30),
+                                        Color.white.opacity(0.08)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                                in: RoundedRectangle(cornerRadius: 14)
+                            )
                             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.70), lineWidth: 1))
                         }
                         .disabled(
@@ -867,10 +923,20 @@ struct MisbahAuthorizationView: View {
                         }
                     }
                     .padding(18)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22))
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.34),
+                                Color.white.opacity(0.07)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        in: RoundedRectangle(cornerRadius: 22)
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 22)
-                            .stroke(Color.gray.opacity(0.55), lineWidth: 1)
+                            .stroke(Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.38), lineWidth: 1)
                     )
                     .shadow(
                         color: Color.white.opacity(0.04),
@@ -883,9 +949,9 @@ struct MisbahAuthorizationView: View {
                             .font(.system(size: 17, weight: .bold))
                             .foregroundStyle(.white)
 
-                        Link(destination: whatsappGroup) {
+                        Link(destination: telegramChannel) {
                             HStack(spacing: 12) {
-                                Image(systemName: "message.circle.fill")
+                                Image(systemName: "paperplane.fill"
                                     .font(.system(size: 27))
                                     .foregroundStyle(
                                         Color(
@@ -896,7 +962,7 @@ struct MisbahAuthorizationView: View {
                                     )
 
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text("Join our WhatsApp group")
+                                    Text("Official Telegram Channel")
                                         .font(
                                             .system(
                                                 size: 15,
@@ -905,7 +971,7 @@ struct MisbahAuthorizationView: View {
                                         )
                                         .foregroundStyle(.white)
 
-                                    Text("Official updates and announcements")
+                                    Text("t.me/roboios")
                                         .font(.system(size: 12))
                                         .foregroundStyle(.white.opacity(0.72))
                                 }
