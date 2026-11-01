@@ -1,0 +1,5 @@
+Online patch API integration note
+
+The app now requests GET /api/public/patch?game=free_fire or game=free_fire_max and displays version/notes with a refresh control. If the request fails or the patch is inactive, the UI displays the requested no-patches-yet message.
+
+The supplied public endpoints previously returned 404 during testing, so the online patch cards will remain in the empty state until the backend routes are deployed and return the documented JSON. This UI fetches metadata only; it does not download or apply executable/game-modification payloads.

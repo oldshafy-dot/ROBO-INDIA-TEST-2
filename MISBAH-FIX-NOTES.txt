@@ -1,0 +1,14 @@
+ROBO INDIA - PATCH IMPORT / BACKGROUND / TAB BAR CHANGES
+
+Changes in this source archive:
+1. Exact duplicate .3105 package bytes are rejected with the message "This file already exists."
+2. A package with the same embedded package identity but different bytes is rejected with a separate message instead of overwriting the existing package.
+3. Because duplicate detection checks the current package library, deleting the package allows the same file to be imported again.
+4. Patch selection Delete action is in the top navigation bar.
+5. Functions patch rows display the stored library filename without the .3105 extension and are larger.
+6. Compact Home / Functions navigation uses a larger floating glass-style bar with grey border.
+7. AppVideoBackground uses one shared AVQueuePlayer / AVPlayerLooper and a full-screen aspect-fill player layer.
+8. The existing GitHub Actions workflow is retained at .github/workflows/ios-build.yml.
+
+Important verification note:
+This archive was edited from the supplied source. An Xcode build and on-device playback cannot be run in this environment. The source code has not been certified as compiling. Different legacy .3105 binary formats were not provided as test samples, so import compatibility for those variants still needs real sample files and a macOS build test.

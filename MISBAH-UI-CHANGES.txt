@@ -1,0 +1,8 @@
+ROBO INDIA UI update
+- App display branding changed to ROBO INDIA (ROBO white, INDIA blue).
+- Replaced visible video backgrounds with a pure-black falling-star/dot background; no streaks or connecting lines.
+- Bottom navigation labels changed to Account and Functions.
+- Removed the WhatsApp phone-contact link; retained the WhatsApp group link.
+- Added online patch metadata refresh UI for Free Fire Normal (free_fire) and Free Fire Max (free_fire_max).
+- Existing local patch controls and Key Authorization logic remain unchanged.
+- GitHub Actions workflow builds an unsigned iOS IPA on a macOS runner.
