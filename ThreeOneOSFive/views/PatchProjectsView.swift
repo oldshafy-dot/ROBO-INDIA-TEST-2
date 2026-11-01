@@ -300,20 +300,22 @@ struct PatchProjectsView: View {
         }
 
         Task.detached(priority: .userInitiated) {
-            var failed = false
+            var restoreFailed = false
 
             for (_, receipt) in receipts {
                 do {
                     try DevicePatchService.restore(receipt: receipt)
                 } catch {
-                    failed = true
+                    restoreFailed = true
                 }
             }
+
+            let restoreResult = restoreFailed
 
             await MainActor.run {
                 isRestoringAll = false
                 store.reload()
-                syncMessage = failed
+                syncMessage = restoreResult
                     ? "Some patches could not be restored."
                     : "All applied patches were restored."
             }
