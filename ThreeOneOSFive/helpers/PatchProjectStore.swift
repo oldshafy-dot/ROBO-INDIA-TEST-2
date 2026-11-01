@@ -400,7 +400,8 @@ final class PatchProjectStore: ObservableObject {
         summary: PatchPackageSummary,
         existingURL: URL?,
         password: String? = nil,
-        origin: PatchPackageOrigin? = nil
+        origin: PatchPackageOrigin? = nil,
+        allowTargetOverlap: Bool = false
     ) throws -> PendingUnlock? {
         if let key = try PatchKeyStore.load(for: summary) {
             let decoded = try PatchPackageCodec.decode(data, contentKey: key)
@@ -409,7 +410,8 @@ final class PatchProjectStore: ObservableObject {
                 decoded: decoded,
                 summary: summary,
                 existingURL: existingURL,
-                origin: origin
+                origin: origin,
+                allowTargetOverlap: allowTargetOverlap
             )
             return nil
         }
@@ -419,7 +421,8 @@ final class PatchProjectStore: ObservableObject {
                     data: data,
                     summary: summary,
                     existingURL: existingURL,
-                    origin: origin
+                    origin: origin,
+                    allowTargetOverlap: allowTargetOverlap
                 )
             }
             let decoded = try PatchPackageCodec.decode(data, password: password)
