@@ -265,16 +265,11 @@ struct PatchProjectsView: View {
         Task.detached(priority: .userInitiated) {
             do {
                 if enabled {
-                    if let receipt = DevicePatchService.latestReceipt(projectID: item.id) {
-                        // A previous restore may have failed. Re-apply that transaction
-                        // so the next OFF press can retry the required restore.
-                        try DevicePatchService.resetToAppliedState(
-                            receipt: receipt,
-                            project: project
-                        )
-                    } else {
-                        _ = try DevicePatchService.apply(project: project)
-                    }
+                    // ON must always issue a fresh APPLY for this patch.
+                    // Do not reuse/reset an older receipt: this guarantees that
+                    // turning another patch ON still calls apply even when a
+                    // different patch is already active.
+                    _ = try DevicePatchService.apply(project: project)
 
                     await MainActor.run {
                         enabledPatchIDs.insert(item.id)
