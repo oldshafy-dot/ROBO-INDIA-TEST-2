@@ -334,48 +334,65 @@ struct PatchProjectsView: View {
         isSyncing = true
         defer { isSyncing = false }
 
-        let games = ["free_fire", "free_fire_max"]
+        let manifestURLs = [
+            URL(string: "https://shafaykeyauthadmin.lovable.app/api/public/v1/patch/latest")!,
+            URL(string: "https://roboexternalauth.lovable.app/api/public/patch?game=free_fire")!
+        ]
 
-        for game in games {
-            guard let manifestURL = URL(string: "https://roboexternalauth.lovable.app/api/public/patch?game=\(game)") else {
-                continue
-            }
+        var lastError = "Patch update could not be checked."
 
+        for manifestURL in manifestURLs {
             do {
-                let (data, response) = try await URLSession.shared.data(from: manifestURL)
-                guard let http = response as? HTTPURLResponse,
-                      (200..<300).contains(http.statusCode) else {
-                    continue
+                var request = URLRequest(url: manifestURL)
+                request.timeoutInterval = 20
+                request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let http = response as? HTTPURLResponse else {
+                    throw PatchSyncError.invalidResponse
+                }
+
+                guard (200..<300).contains(http.statusCode) else {
+                    throw PatchSyncError.http(http.statusCode)
                 }
 
                 let manifest = try JSONDecoder().decode(PatchArchiveManifest.self, from: data)
-                guard manifest.active != false,
-                      let rawDownloadURL = manifest.download_url,
-                      let downloadURL = URL(string: rawDownloadURL),
-                      downloadURL.scheme == "https" else {
-                    continue
+
+                guard manifest.active != false else {
+                    throw PatchSyncError.inactive
                 }
 
-                let defaults = UserDefaults.standard
+                guard let rawDownloadURL = manifest.download_url,
+                      let downloadURL = URL(string: rawDownloadURL),
+                      downloadURL.scheme == "https" else {
+                    throw PatchSyncError.missingDownloadURL
+                }
 
-                // Always refresh the archive when Functions opens.
-                // The admin may replace the ZIP without changing its version/URL.
                 let (archiveData, archiveResponse) = try await URLSession.shared.data(from: downloadURL)
+
                 guard let archiveHTTP = archiveResponse as? HTTPURLResponse,
                       (200..<300).contains(archiveHTTP.statusCode) else {
-                    continue
+                    throw PatchSyncError.archiveDownloadFailed
                 }
 
                 let tempRoot = FileManager.default.temporaryDirectory
                     .appendingPathComponent("robo-patches-\(UUID().uuidString)", isDirectory: true)
-                try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(
+                    at: tempRoot,
+                    withIntermediateDirectories: true
+                )
                 defer { try? FileManager.default.removeItem(at: tempRoot) }
 
                 let archiveURL = tempRoot.appendingPathComponent("ROBO-PATCHES.zip")
                 try archiveData.write(to: archiveURL, options: .atomic)
 
                 let extractionRoot = tempRoot.appendingPathComponent("extracted", isDirectory: true)
-                try FileManager.default.createDirectory(at: extractionRoot, withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(
+                    at: extractionRoot,
+                    withIntermediateDirectories: true
+                )
+
                 let result = try ZIPArchiveExtractor.extract(
                     archiveURL: archiveURL,
                     into: extractionRoot
@@ -386,29 +403,74 @@ struct PatchProjectsView: View {
                     fileManager: .default
                 )
 
+                guard !packageURLs.isEmpty else {
+                    throw PatchSyncError.noPatchesFound
+                }
+
                 var imported = 0
+
                 for packageURL in packageURLs {
                     let packageData = try Data(contentsOf: packageURL)
+
+                    while store.isBusy {
+                        try await Task.sleep(nanoseconds: 150_000_000)
+                    }
+
                     if store.importPackage(data: packageData) {
                         imported += 1
-                        while store.isBusy {
-                            try? await Task.sleep(nanoseconds: 150_000_000)
-                        }
+                    }
+
+                    while store.isBusy {
+                        try await Task.sleep(nanoseconds: 150_000_000)
                     }
                 }
 
-                defaults.set(downloadURL.absoluteString, forKey: "robo.patch.archive.url")
-                defaults.set(manifest.version ?? "", forKey: "robo.patch.archive.version")
+                UserDefaults.standard.set(
+                    downloadURL.absoluteString,
+                    forKey: "robo.patch.archive.url"
+                )
+                UserDefaults.standard.set(
+                    manifest.version ?? "",
+                    forKey: "robo.patch.archive.version"
+                )
 
-                await MainActor.run {
-                    store.reload()
-                    syncMessage = imported > 0
-                        ? "Patch update installed."
-                        : "Patch archive checked."
-                }
+                store.reload()
+                syncMessage = imported > 0
+                    ? "Patch update installed (\(imported) patches)."
+                    : "Patch archive checked."
                 return
+
             } catch {
-                continue
+                lastError = error.localizedDescription
+            }
+        }
+
+        store.reload()
+        syncMessage = lastError
+    }
+
+    private enum PatchSyncError: LocalizedError {
+        case invalidResponse
+        case http(Int)
+        case inactive
+        case missingDownloadURL
+        case archiveDownloadFailed
+        case noPatchesFound
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidResponse:
+                return "Patch server returned an invalid response."
+            case .http(let code):
+                return "Patch server returned HTTP \(code)."
+            case .inactive:
+                return "The current patch archive is inactive."
+            case .missingDownloadURL:
+                return "Patch server did not provide a download URL."
+            case .archiveDownloadFailed:
+                return "The patch ZIP could not be downloaded."
+            case .noPatchesFound:
+                return "The patch ZIP contains no .3105 patch files."
             }
         }
     }
