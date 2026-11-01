@@ -107,21 +107,20 @@ final class PatchProjectStore: ObservableObject {
         guard !isBusy, !packages.isEmpty else { return 0 }
         isBusy = true
 
-        let count = await Task.detached(priority: .userInitiated) { [weak self] () -> Int in
+        let existingByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0.packageURL) })
+
+        let count = await Task.detached(priority: .userInitiated) {
             var imported = 0
 
             for data in packages {
                 do {
                     let summary = try PatchPackageCodec.inspect(data)
-                    try PatchProjectLibrary.validateImportIsNew(data: data, summary: summary)
-                    let existingURL = await self?.existingPackageURL(for: summary.packageID)
-
                     if summary.isPasswordProtected {
-                        // Automatic archive imports require non-password-protected packages.
                         continue
                     }
 
-                    _ = try Self.persistImportedPackage(
+                    let existingURL = existingByID[summary.packageID]
+                    _ = try PatchProjectStore.persistImportedPackage(
                         data: data,
                         summary: summary,
                         existingURL: existingURL,
