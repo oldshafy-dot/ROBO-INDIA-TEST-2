@@ -903,7 +903,7 @@ struct MisbahAuthorizationView: View {
                                 ),
                                 in: RoundedRectangle(cornerRadius: 14)
                             )
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.70), lineWidth: 1))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(red: 0.20, green: 0.58, blue: 1.0).opacity(0.52), lineWidth: 1))
                         }
                         .disabled(
                             license.isVerifying
@@ -951,7 +951,7 @@ struct MisbahAuthorizationView: View {
 
                         Link(destination: telegramChannel) {
                             HStack(spacing: 12) {
-                                Image(systemName: "paperplane.fill"
+                                Image(systemName: "paperplane.fill")
                                     .font(.system(size: 27))
                                     .foregroundStyle(
                                         Color(
