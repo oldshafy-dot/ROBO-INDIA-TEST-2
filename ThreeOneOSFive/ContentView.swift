@@ -230,7 +230,7 @@ struct ContentView: View {
 }
 
 /// Full-screen falling star field: small points only, no streaks or connecting lines.
-private struct StarfieldBackground: View {
+struct StarfieldBackground: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
