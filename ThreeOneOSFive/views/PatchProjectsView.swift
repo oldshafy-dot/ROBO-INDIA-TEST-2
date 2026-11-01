@@ -123,15 +123,15 @@ struct PatchProjectsView: View {
                                 ? LinearGradient(
                                     colors: [
                                         Color(red: 0.08, green: 0.38, blue: 0.72),
-                                        Color(red: 0.18, green: 0.62, blue: 0.95)
+                                        Color(red: 0.12, green: 0.52, blue: 0.86)
                                     ],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                                 : LinearGradient(
                                     colors: [
-                                        Color(red: 0.05, green: 0.15, blue: 0.25).opacity(0.92),
-                                        Color.white.opacity(0.06)
+                                        Color.white.opacity(0.045),
+                                        Color.white.opacity(0.025)
                                     ],
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -141,7 +141,7 @@ struct PatchProjectsView: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(
-                                    Color(red: 0.22, green: 0.60, blue: 1.0).opacity(0.55),
+                                    Color.white.opacity(0.22),
                                     lineWidth: 1
                                 )
                         )
@@ -151,13 +151,13 @@ struct PatchProjectsView: View {
         }
         .padding(5)
         .background(
-            Color(red: 0.04, green: 0.12, blue: 0.20).opacity(0.95),
+            Color.white.opacity(0.035),
             in: RoundedRectangle(cornerRadius: 15)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 15)
                 .stroke(
-                    Color(red: 0.18, green: 0.52, blue: 0.92).opacity(0.48),
+                    Color.white.opacity(0.20),
                     lineWidth: 1
                 )
         )
@@ -196,10 +196,6 @@ struct PatchProjectsView: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
-                Text(item.packageURL.lastPathComponent)
-                    .font(.system(size: 10))
-                    .foregroundStyle(Color(red: 0.45, green: 0.68, blue: 1.0).opacity(0.85))
-                    .lineLimit(1)
             }
 
             Spacer(minLength: 8)
@@ -227,8 +223,8 @@ struct PatchProjectsView: View {
                     .frame(width: 64, height: 30)
                     .background(
                         enabled
-                            ? Color(red: 0.08, green: 0.55, blue: 0.95).opacity(0.90)
-                            : Color(red: 0.08, green: 0.24, blue: 0.38).opacity(0.75),
+                            ? Color.green.opacity(0.90)
+                            : Color(red: 0.08, green: 0.38, blue: 0.72).opacity(0.90),
                         in: Capsule()
                     )
                 }
@@ -241,8 +237,8 @@ struct PatchProjectsView: View {
         .background(
             LinearGradient(
                 colors: [
-                    Color(red: 0.06, green: 0.20, blue: 0.34).opacity(0.62),
-                    Color.white.opacity(0.045)
+                    Color.white.opacity(0.045),
+                    Color.white.opacity(0.025)
                 ],
                 startPoint: .leading,
                 endPoint: .trailing
@@ -252,7 +248,7 @@ struct PatchProjectsView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .stroke(
-                    Color(red: 0.18, green: 0.52, blue: 0.92).opacity(0.34),
+                    Color.white.opacity(0.20),
                     lineWidth: 1
                 )
         )
