@@ -9,6 +9,7 @@ struct PatchProjectsView: View {
     let onOpenLogs: () -> Void
 
     @State private var workingPatchIDs = Set<UUID>()
+    @State private var enabledPatchIDs = Set<UUID>()
     @State private var isRestoringAll = false
     @State private var syncMessage: String?
     @State private var isSyncing = false
@@ -205,7 +206,7 @@ struct PatchProjectsView: View {
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(.orange)
             } else {
-                let enabled = DevicePatchService.latestReceipt(projectID: item.id) != nil
+                let enabled = enabledPatchIDs.contains(item.id)
 
                 Button {
                     togglePatch(item, enabled: !enabled)
@@ -263,21 +264,56 @@ struct PatchProjectsView: View {
         Task.detached(priority: .userInitiated) {
             do {
                 if enabled {
-                    _ = try DevicePatchService.apply(project: project)
-                } else if let receipt = DevicePatchService.latestReceipt(projectID: item.id) {
-                    try DevicePatchService.restore(receipt: receipt)
-                }
+                    if let receipt = DevicePatchService.latestReceipt(projectID: item.id) {
+                        // A previous restore may have failed. Re-apply that transaction
+                        // so the next OFF press can retry the required restore.
+                        try DevicePatchService.resetToAppliedState(
+                            receipt: receipt,
+                            project: project
+                        )
+                    } else {
+                        _ = try DevicePatchService.apply(project: project)
+                    }
 
-                await MainActor.run {
-                    workingPatchIDs.remove(item.id)
-                    store.reload()
+                    await MainActor.run {
+                        enabledPatchIDs.insert(item.id)
+                        workingPatchIDs.remove(item.id)
+                        syncMessage = nil
+                    }
+                } else {
+                    // OFF always means RESTORE. The UI becomes OFF regardless of
+                    // whether the backend restore succeeds, but the failure is shown.
+                    enabledPatchIDs.remove(item.id)
+
+                    guard let receipt = DevicePatchService.latestReceipt(projectID: item.id) else {
+                        await MainActor.run {
+                            workingPatchIDs.remove(item.id)
+                            syncMessage = "Restore could not be started for \(project.name). Please try again."
+                        }
+                        return
+                    }
+
+                    do {
+                        try DevicePatchService.restore(receipt: receipt)
+                        await MainActor.run {
+                            workingPatchIDs.remove(item.id)
+                            syncMessage = nil
+                        }
+                    } catch {
+                        await MainActor.run {
+                            workingPatchIDs.remove(item.id)
+                            syncMessage = "Failed to restore \(project.name). Please try ON, then OFF again to retry restore."
+                        }
+                    }
                 }
             } catch {
                 await MainActor.run {
                     workingPatchIDs.remove(item.id)
-                    syncMessage = enabled
-                        ? "Failed to apply \(project.name)."
-                        : "Failed to restore \(project.name)."
+                    if enabled {
+                        syncMessage = "Failed to apply \(project.name)."
+                    } else {
+                        syncMessage = "Failed to restore \(project.name). Please try ON, then OFF again to retry restore."
+                    }
                 }
             }
         }
@@ -310,6 +346,7 @@ struct PatchProjectsView: View {
 
             await MainActor.run {
                 isRestoringAll = false
+                enabledPatchIDs.removeAll()
                 store.reload()
                 syncMessage = restoreResult
                     ? "Some patches could not be restored."
