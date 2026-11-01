@@ -404,13 +404,23 @@ struct PatchProjectsView: View {
                 .filter { $0.enabled && $0.has_file && $0.selectable }
                 .sorted { $0.sort_order < $1.sort_order }
 
-            guard !availableOptions.isEmpty else {
+            let remoteRepositoryURL = URL(string: "https://shafaykeyauthadmin.lovable.app/api/public/v1/patch/options")!
+            let remotePackageIdentifiers = Set(availableOptions.map(\.id))
+
+            if availableOptions.isEmpty {
+                // The online patch list is now empty. Remove patches previously
+                // synchronized from this online source so the app mirrors it.
+                _ = store.removeRemotePackagesNotIn(
+                    repositoryURL: remoteRepositoryURL,
+                    packageIdentifiers: []
+                )
                 store.reload()
                 syncMessage = "No online patches are available."
                 return
             }
 
             var packageData: [Data] = []
+            var remoteOrigins: [PatchPackageOrigin] = []
             var failedNames: [String] = []
 
             for option in availableOptions {
@@ -434,6 +444,13 @@ struct PatchProjectsView: View {
                     }
 
                     packageData.append(patchData)
+                    remoteOrigins.append(
+                        PatchPackageOrigin(
+                            repositoryName: "ROBO Online Patches",
+                            repositoryURL: remoteRepositoryURL,
+                            packageIdentifier: option.id
+                        )
+                    )
                 } catch {
                     failedNames.append(option.name)
                 }
@@ -445,7 +462,15 @@ struct PatchProjectsView: View {
                 try? await Task.sleep(nanoseconds: 100_000_000)
             }
 
-            let imported = await store.importPackages(data: packageData)
+            let imported = await store.importPackages(
+                data: packageData,
+                origins: remoteOrigins
+            )
+
+            _ = store.removeRemotePackagesNotIn(
+                repositoryURL: remoteRepositoryURL,
+                packageIdentifiers: remotePackageIdentifiers
+            )
             store.reload()
 
             if imported > 0 {
