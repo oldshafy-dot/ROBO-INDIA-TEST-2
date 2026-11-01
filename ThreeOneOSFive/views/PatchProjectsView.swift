@@ -407,23 +407,8 @@ struct PatchProjectsView: View {
                     throw PatchSyncError.noPatchesFound
                 }
 
-                var imported = 0
-
-                for packageURL in packageURLs {
-                    let packageData = try Data(contentsOf: packageURL)
-
-                    while store.isBusy {
-                        try await Task.sleep(nanoseconds: 150_000_000)
-                    }
-
-                    if store.importPackage(data: packageData) {
-                        imported += 1
-                    }
-
-                    while store.isBusy {
-                        try await Task.sleep(nanoseconds: 150_000_000)
-                    }
-                }
+                let packageData = try packageURLs.map { try Data(contentsOf: $0) }
+                let imported = await store.importPackages(data: packageData)
 
                 UserDefaults.standard.set(
                     downloadURL.absoluteString,
