@@ -83,20 +83,48 @@ struct ContentView: View {
     }
 
     private var compactLayout: some View {
-        TabView(selection: tabSelection) {
-            ForEach([AppSection.installed, .home]) { section in
-                sectionContent(section)
-                    .background(Color.clear)
-                    .tabItem {
-                        CompactTabLabel(
-                            title: language.text(section.titleKey),
-                            systemImage: section.systemImage
-                        )
-                    }
-                    .tag(section.rawValue)
+        VStack(spacing: 0) {
+            sectionContent(selectedVisibleSection)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            HStack(spacing: 0) {
+                compactBottomButton(.installed)
+                compactBottomButton(.home)
+            }
+            .frame(height: 76)
+            .background(Color.black.opacity(0.94))
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(Color.white.opacity(0.22))
+                    .frame(height: 1)
             }
         }
-        .background(Color.clear)
+        .background(Color.black.ignoresSafeArea())
+    }
+
+    private func compactBottomButton(_ section: AppSection) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.16)) {
+                tabNavigation.select(section.rawValue)
+            }
+        } label: {
+            VStack(spacing: 5) {
+                Image(systemName: section.systemImage)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.20, green: 0.62, blue: 1.0))
+
+                Text(language.text(section.titleKey))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 76)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(
+            section.rawValue == tabNavigation.selectedTab ? .isSelected : []
+        )
     }
 
     private var regularLayout: some View {
