@@ -12,6 +12,12 @@ struct PatchProjectsView: View {
     @State private var isRestoringAll = false
     @State private var syncMessage: String?
     @State private var isSyncing = false
+    @State private var selectedCategory: PatchCategory = .ffIndia
+
+    private enum PatchCategory: String, CaseIterable {
+        case ffIndia = "FF India"
+        case bgmi = "BGMI"
+    }
 
     private var ffIndiaItems: [PatchLibraryItem] {
         store.items.filter { item in
@@ -30,18 +36,12 @@ struct PatchProjectsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    telegramRow
+                VStack(alignment: .leading, spacing: 14) {
+                    categoryPicker
 
                     categorySection(
-                        title: "FF India",
-                        items: ffIndiaItems,
-                        emptyMessage: "Patch is not available yet. Next patch will be available soon."
-                    )
-
-                    categorySection(
-                        title: "BGMI",
-                        items: bgmiItems,
+                        title: selectedCategory.rawValue,
+                        items: selectedItems,
                         emptyMessage: "Patch is not available yet. Next patch will be available soon."
                     )
 
@@ -57,7 +57,17 @@ struct PatchProjectsView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
-                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                        .background(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.08, green: 0.30, blue: 0.55).opacity(0.70),
+                                    Color(red: 0.12, green: 0.48, blue: 0.82).opacity(0.42)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            in: RoundedRectangle(cornerRadius: 12)
+                        )
                     }
                     .buttonStyle(.plain)
                     .disabled(isRestoringAll || store.items.isEmpty)
@@ -65,7 +75,7 @@ struct PatchProjectsView: View {
                     if let syncMessage {
                         Text(syncMessage)
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(Color(red: 0.45, green: 0.72, blue: 1.0))
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -82,34 +92,75 @@ struct PatchProjectsView: View {
         }
     }
 
-    private var telegramRow: some View {
-        Button {
-            guard let url = URL(string: "https://t.me/roboios") else { return }
-            UIApplication.shared.open(url)
-        } label: {
-            HStack(spacing: 11) {
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Official Telegram Channel")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                    Text("t.me/roboios")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color(red: 0.35, green: 0.68, blue: 1.0))
-                }
-
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.55))
-            }
-            .padding(12)
-            .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
+    private var selectedItems: [PatchLibraryItem] {
+        switch selectedCategory {
+        case .ffIndia:
+            return ffIndiaItems
+        case .bgmi:
+            return bgmiItems
         }
-        .buttonStyle(.plain)
+    }
+
+    private var categoryPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(PatchCategory.allCases, id: \.self) { category in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.16)) {
+                        selectedCategory = category
+                    }
+                } label: {
+                    Text(category.rawValue)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(
+                            selectedCategory == category
+                                ? .white
+                                : Color(red: 0.48, green: 0.72, blue: 1.0)
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            selectedCategory == category
+                                ? LinearGradient(
+                                    colors: [
+                                        Color(red: 0.08, green: 0.38, blue: 0.72),
+                                        Color(red: 0.18, green: 0.62, blue: 0.95)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                : LinearGradient(
+                                    colors: [
+                                        Color(red: 0.05, green: 0.15, blue: 0.25).opacity(0.92),
+                                        Color.white.opacity(0.06)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                            in: RoundedRectangle(cornerRadius: 12)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(
+                                    Color(red: 0.22, green: 0.60, blue: 1.0).opacity(0.55),
+                                    lineWidth: 1
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(5)
+        .background(
+            Color(red: 0.04, green: 0.12, blue: 0.20).opacity(0.95),
+            in: RoundedRectangle(cornerRadius: 15)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(
+                    Color(red: 0.18, green: 0.52, blue: 0.92).opacity(0.48),
+                    lineWidth: 1
+                )
+        )
     }
 
     @ViewBuilder
@@ -120,14 +171,14 @@ struct PatchProjectsView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
 
             if items.isEmpty {
                 Text(emptyMessage)
                     .font(.system(size: 12))
                     .foregroundStyle(.white.opacity(0.58))
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 16)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 ForEach(items) { item in
@@ -147,7 +198,7 @@ struct PatchProjectsView: View {
 
                 Text(item.packageURL.lastPathComponent)
                     .font(.system(size: 10))
-                    .foregroundStyle(.white.opacity(0.45))
+                    .foregroundStyle(Color(red: 0.45, green: 0.68, blue: 1.0).opacity(0.85))
                     .lineLimit(1)
             }
 
@@ -176,8 +227,8 @@ struct PatchProjectsView: View {
                     .frame(width: 64, height: 30)
                     .background(
                         enabled
-                            ? Color.green.opacity(0.75)
-                            : Color.white.opacity(0.12),
+                            ? Color(red: 0.08, green: 0.55, blue: 0.95).opacity(0.90)
+                            : Color(red: 0.08, green: 0.24, blue: 0.38).opacity(0.75),
                         in: Capsule()
                     )
                 }
@@ -187,7 +238,24 @@ struct PatchProjectsView: View {
         }
         .padding(.horizontal, 11)
         .padding(.vertical, 10)
-        .background(Color.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 10))
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(red: 0.06, green: 0.20, blue: 0.34).opacity(0.62),
+                    Color.white.opacity(0.045)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            ),
+            in: RoundedRectangle(cornerRadius: 10)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(
+                    Color(red: 0.18, green: 0.52, blue: 0.92).opacity(0.34),
+                    lineWidth: 1
+                )
+        )
     }
 
     private func togglePatch(_ item: PatchLibraryItem, enabled: Bool) {
