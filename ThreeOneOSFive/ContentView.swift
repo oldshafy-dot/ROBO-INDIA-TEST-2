@@ -71,6 +71,7 @@ struct ContentView: View {
         }
         .onAppear {
             tabNavigation.reconcileSelection(with: featureVisibility)
+            AppMediaController.shared.startFunctionAudio()
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
@@ -353,16 +354,16 @@ struct MisbahHomeView: View {
 
     let onOpenSettings: () -> Void
 
-    private let telegramChannel = URL(string: "https://t.me/roboios")!
+    private let officialChannel = URL(string: "https://whatsapp.com/channel/0029VbE0r70HAdNWmaH1nK1h")!
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
                     VStack(spacing: 3) {
-                        (Text("ROBO ").foregroundColor(.white)
-                            + Text("INDIA").foregroundColor(Color(red: 0.20, green: 0.68, blue: 1.0)))
+                        Text("BEST EXTERNAL")
                             .font(.system(size: 28, weight: .heavy, design: .rounded))
+                            .foregroundStyle(Color(red: 0.66, green: 0.48, blue: 0.88))
 
                         Text("Developer Shafay")
                             .font(.system(size: 15, weight: .semibold))
@@ -413,7 +414,7 @@ struct MisbahHomeView: View {
                     .background(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.34),
+                                Color(red: 0.24, green: 0.14, blue: 0.38).opacity(0.34),
                                 Color.white.opacity(0.07)
                             ],
                             startPoint: .topLeading,
@@ -429,7 +430,7 @@ struct MisbahHomeView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Version & Update")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(Color(red: 0.20, green: 0.68, blue: 1.0))
+                            .foregroundStyle(Color(red: 0.62, green: 0.42, blue: 0.84))
                             .padding(.bottom, 8)
 
                         deviceRow("Version", value: "V1.0")
@@ -439,7 +440,7 @@ struct MisbahHomeView: View {
                     .background(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.28),
+                                Color(red: 0.24, green: 0.14, blue: 0.38).opacity(0.28),
                                 Color.white.opacity(0.07)
                             ],
                             startPoint: .topLeading,
@@ -455,7 +456,7 @@ struct MisbahHomeView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Device Information")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(Color(red: 0.20, green: 0.68, blue: 1.0))
+                            .foregroundStyle(Color(red: 0.62, green: 0.42, blue: 0.84))
                             .padding(.bottom, 8)
 
                         deviceRow(
@@ -475,7 +476,7 @@ struct MisbahHomeView: View {
 
                         deviceRow(
                             "Source",
-                            value: "ROBO INDIA"
+                            value: "BEST EXTERNAL"
                         )
 
                         deviceRow(
@@ -489,7 +490,7 @@ struct MisbahHomeView: View {
                     .background(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.28),
+                                Color(red: 0.24, green: 0.14, blue: 0.38).opacity(0.28),
                                 Color.white.opacity(0.07)
                             ],
                             startPoint: .topLeading,
@@ -503,14 +504,14 @@ struct MisbahHomeView: View {
                     )
 
                     VStack(spacing: 10) {
-                        Text("Our Official Channel")
+                        Text("BEST OFFICIAL")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(Color(red: 0.20, green: 0.68, blue: 1.0))
+                            .foregroundStyle(Color(red: 0.62, green: 0.42, blue: 0.84))
 
-                        Link(destination: telegramChannel) {
+                        Link(destination: officialChannel) {
                             Label(
-                                "Official Telegram Channel",
-                                systemImage: "paperplane.fill"
+                                "BEST OFFICIAL — WhatsApp Channel",
+                                systemImage: "message.fill"
                             )
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.white)
@@ -522,7 +523,7 @@ struct MisbahHomeView: View {
                             .background(
                                 LinearGradient(
                                     colors: [
-                                        Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.30),
+                                        Color(red: 0.24, green: 0.14, blue: 0.38).opacity(0.30),
                                         Color.white.opacity(0.08)
                                     ],
                                     startPoint: .leading,
@@ -547,7 +548,7 @@ struct MisbahHomeView: View {
                                 .background(
                                 LinearGradient(
                                     colors: [
-                                        Color(red: 0.10, green: 0.35, blue: 0.58).opacity(0.30),
+                                        Color(red: 0.24, green: 0.14, blue: 0.38).opacity(0.30),
                                         Color.white.opacity(0.08)
                                     ],
                                     startPoint: .leading,
@@ -846,23 +847,27 @@ struct MisbahAuthorizationView: View {
     @EnvironmentObject private var license: MisbahLicenseManager
     @State private var keyText = ""
 
-    private let telegramChannel = URL(string: "https://t.me/roboresellers")!
+    private let officialChannel = URL(string: "https://whatsapp.com/channel/0029VbE0r70HAdNWmaH1nK1h")!
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
+            AppAuthorizationVideoBackground()
 
             ScrollView {
                 VStack(spacing: 24) {
                     Spacer(minLength: 190)
 
-                    (Text("ROBO ").foregroundColor(.white)
-                        + Text("INDIA").foregroundColor(
-                            Color(red: 0.12, green: 0.48, blue: 0.95)
-                        ))
-                        .font(.system(size: 38, weight: .bold, design: .rounded))
+                    Text("BEST EXTERNAL")
+                        .foregroundStyle(Color(red: 0.68, green: 0.49, blue: 0.90))
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
                         .minimumScaleFactor(0.7)
                         .lineLimit(1)
+
+                    Text("EXTERNAL SUPPORTS FREE FIRE PATCHES")
+                        .font(.system(size: 10, weight: .semibold))
+                        .tracking(1.1)
+                        .foregroundStyle(.white.opacity(0.88))
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text("LICENSE KEY")
@@ -912,8 +917,8 @@ struct MisbahAuthorizationView: View {
                             .background(
                                 LinearGradient(
                                     colors: [
-                                        Color(red: 0.05, green: 0.34, blue: 0.55),
-                                        Color(red: 0.03, green: 0.20, blue: 0.58)
+                                        Color(red: 0.28, green: 0.16, blue: 0.46),
+                                        Color(red: 0.18, green: 0.10, blue: 0.34)
                                     ],
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -935,12 +940,12 @@ struct MisbahAuthorizationView: View {
                     }
                     .padding(.horizontal, 42)
 
-                    Link(destination: telegramChannel) {
+                    Link(destination: officialChannel) {
                         HStack(spacing: 10) {
-                            Image(systemName: "paperplane.fill")
+                            Image(systemName: "message.fill")
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(Color(red: 0.18, green: 0.62, blue: 1.0))
-                            Text("Robo Resellers")
+                                .foregroundStyle(Color(red: 0.62, green: 0.42, blue: 0.84))
+                            Text("BEST OFFICIAL")
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundStyle(.white)
                             Spacer()
