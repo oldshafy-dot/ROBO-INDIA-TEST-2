@@ -54,7 +54,7 @@ struct ContentView: View {
                 }
             }
         }
-        .tint(.white)
+        .tint(AppTheme.accent)
         .imageScale(.small)
         .onChange(of: patchDraftCoordinator.request?.id) { requestID in
             if requestID != nil {
@@ -176,7 +176,7 @@ struct ContentView: View {
                     )
                 }
             }
-            .navigationTitle("ROBO INDIA")
+            .navigationTitle("BEST EXTERNAL")
             .navigationSplitViewColumnWidth(
                 min: 210,
                 ideal: 240,
@@ -964,5 +964,6 @@ struct MisbahAuthorizationView: View {
                 .frame(maxWidth: .infinity, minHeight: UIScreen.main.bounds.height)
             }
         }
+        .onAppear { AppMediaController.shared.startFunctionAudio() }
     }
 }
