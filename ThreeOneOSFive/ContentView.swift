@@ -130,7 +130,7 @@ struct ContentView: View {
             .frame(height: 48)
             .background(
                 section.rawValue == tabNavigation.selectedTab
-                    ? Color(red: 0.15, green: 0.52, blue: 0.95)
+                    ? Color(red: 0.42, green: 0.24, blue: 0.66)
                     : Color.clear,
                 in: Capsule()
             )
