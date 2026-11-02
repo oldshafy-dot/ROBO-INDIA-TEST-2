@@ -2,43 +2,27 @@ import SwiftUI
 import AVFoundation
 import AVKit
 
-/// Shared full-screen looping video background for Home, Functions, and child screens.
-struct AppVideoBackground: View {
-    var body: some View {
-        GeometryReader { geometry in
-            SharedLoopingVideoView()
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .clipped()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-        .ignoresSafeArea()
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-    }
-}
+/// Keeps the Functions clip's audio alive across authorization and tab changes.
+final class AppMediaController {
+    static let shared = AppMediaController()
 
-private final class SharedBackgroundVideo {
-    static let shared = SharedBackgroundVideo()
+    private var audioPlayer: AVQueuePlayer?
+    private var audioLooper: AVPlayerLooper?
+    private var didAttemptStart = false
 
-    let player: AVQueuePlayer?
-    private let looper: AVPlayerLooper?
+    private init() {}
 
-    private init() {
-        guard let url = Bundle.main.url(
-            forResource: "MISBAH_Background",
-            withExtension: "mp4"
-        ) else {
-            player = nil
-            looper = nil
-            NSLog("MISBAH Background: MISBAH_Background.mp4 missing from app bundle")
+    func startFunctionAudio() {
+        guard !didAttemptStart else {
+            if audioPlayer?.timeControlStatus != .playing { audioPlayer?.play() }
             return
         }
+        didAttemptStart = true
 
-        let queue = AVQueuePlayer()
-        queue.actionAtItemEnd = .advance
-        queue.isMuted = false
-        queue.volume = 1.0
+        guard let url = Bundle.main.url(forResource: "Functionscreen", withExtension: "mov") else {
+            NSLog("BEST EXTERNAL: Functionscreen.mov is not yet included in the app bundle")
+            return
+        }
 
         do {
             try AVAudioSession.sharedInstance().setCategory(
@@ -48,12 +32,108 @@ private final class SharedBackgroundVideo {
             )
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
-            NSLog("MISBAH Background: audio session setup failed: %@", error.localizedDescription)
+            NSLog("BEST EXTERNAL: audio session setup failed: %@", error.localizedDescription)
         }
 
-        let item = AVPlayerItem(url: url)
-        self.looper = AVPlayerLooper(player: queue, templateItem: item)
-        self.player = queue
+        let queue = AVQueuePlayer()
+        queue.isMuted = false
+        queue.volume = 1
+        queue.actionAtItemEnd = .advance
+        audioLooper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: url))
+        audioPlayer = queue
+        queue.play()
+    }
+
+    func resumeFunctionAudio() {
+        guard let audioPlayer, audioPlayer.timeControlStatus != .playing else { return }
+        audioPlayer.play()
+    }
+}
+
+/// Full-screen, zoom-to-fill muted video used behind the license screen.
+struct AppAuthorizationVideoBackground: View {
+    var body: some View {
+        LoopingVideoSurface(
+            resourceName: "Keyauthvideo",
+            fileExtension: "mp4",
+            fallbackResourceName: "MISBAH_Background",
+            fallbackExtension: "mp4",
+            isMuted: true,
+            gravity: .resizeAspectFill
+        )
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+/// A looping, zoomable/cropped video surface with no playback controls.
+struct LoopingVideoSurface: View {
+    let resourceName: String
+    let fileExtension: String
+    var fallbackResourceName: String? = nil
+    var fallbackExtension: String? = nil
+    var isMuted = true
+    var gravity: AVLayerVideoGravity = .resizeAspectFill
+
+    @StateObject private var playback: LocalLoopingVideo
+
+    init(
+        resourceName: String,
+        fileExtension: String,
+        fallbackResourceName: String? = nil,
+        fallbackExtension: String? = nil,
+        isMuted: Bool = true,
+        gravity: AVLayerVideoGravity = .resizeAspectFill
+    ) {
+        self.resourceName = resourceName
+        self.fileExtension = fileExtension
+        self.fallbackResourceName = fallbackResourceName
+        self.fallbackExtension = fallbackExtension
+        self.isMuted = isMuted
+        self.gravity = gravity
+        _playback = StateObject(wrappedValue: LocalLoopingVideo(
+            resourceName: resourceName,
+            fileExtension: fileExtension,
+            fallbackResourceName: fallbackResourceName,
+            fallbackExtension: fallbackExtension,
+            isMuted: isMuted
+        ))
+    }
+
+    var body: some View {
+        PlayerLayerSurface(player: playback.player, gravity: gravity)
+            .onAppear { playback.resume() }
+    }
+}
+
+private final class LocalLoopingVideo: ObservableObject {
+    let player: AVQueuePlayer?
+    private var looper: AVPlayerLooper?
+
+    init(
+        resourceName: String,
+        fileExtension: String,
+        fallbackResourceName: String?,
+        fallbackExtension: String?,
+        isMuted: Bool
+    ) {
+        let url = Bundle.main.url(forResource: resourceName, withExtension: fileExtension)
+            ?? fallbackResourceName.flatMap {
+                Bundle.main.url(forResource: $0, withExtension: fallbackExtension)
+            }
+        guard let url else {
+            player = nil
+            NSLog("BEST EXTERNAL: video asset %@.%@ is missing", resourceName, fileExtension)
+            return
+        }
+
+        let queue = AVQueuePlayer()
+        queue.isMuted = isMuted
+        queue.volume = isMuted ? 0 : 1
+        queue.actionAtItemEnd = .advance
+        looper = AVPlayerLooper(player: queue, templateItem: AVPlayerItem(url: url))
+        player = queue
         queue.play()
     }
 
@@ -63,28 +143,28 @@ private final class SharedBackgroundVideo {
     }
 }
 
-private struct SharedLoopingVideoView: UIViewRepresentable {
+private struct PlayerLayerSurface: UIViewRepresentable {
+    let player: AVPlayer?
+    let gravity: AVLayerVideoGravity
+
     func makeUIView(context: Context) -> PlayerLayerView {
         let view = PlayerLayerView()
         view.backgroundColor = .black
         view.isOpaque = true
-        view.playerLayer.videoGravity = .resizeAspectFill
-        view.playerLayer.player = SharedBackgroundVideo.shared.player
-        SharedBackgroundVideo.shared.resume()
+        view.playerLayer.videoGravity = gravity
+        view.playerLayer.player = player
         return view
     }
 
     func updateUIView(_ uiView: PlayerLayerView, context: Context) {
-        uiView.playerLayer.player = SharedBackgroundVideo.shared.player
-        SharedBackgroundVideo.shared.resume()
+        uiView.playerLayer.videoGravity = gravity
+        uiView.playerLayer.player = player
     }
 
     final class PlayerLayerView: UIView {
         override class var layerClass: AnyClass { AVPlayerLayer.self }
 
-        var playerLayer: AVPlayerLayer {
-            layer as! AVPlayerLayer
-        }
+        var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
 
         override func layoutSubviews() {
             super.layoutSubviews()
