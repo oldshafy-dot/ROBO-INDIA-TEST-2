@@ -190,13 +190,6 @@ struct PatchProjectsView: View {
             Color.white.opacity(0.035),
             in: RoundedRectangle(cornerRadius: 15)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(
-                    Color.white.opacity(0.20),
-                    lineWidth: 1
-                )
-        )
     }
 
     @ViewBuilder
