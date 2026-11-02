@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
         3105D200 /* AppVideoBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105D100; };
         3105D201 /* MISBAH_Background.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 3105D101; };
+        3105D202 /* Keyauthvideo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 3105D102; };
+        3105D203 /* Functionscreen.mov in Resources */ = {isa = PBXBuildFile; fileRef = 3105D103; };
 		3105A200 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A020; };
 		3105A201 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A021; };
 		3105A203 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A023; };
@@ -82,6 +84,8 @@
 /* Begin PBXFileReference section */
         3105D100 /* AppVideoBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVideoBackground.swift; sourceTree = "<group>"; };
         3105D101 /* MISBAH_Background.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = MISBAH_Background.mp4; sourceTree = "<group>"; };
+        3105D102 /* Keyauthvideo.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = Media/Keyauthvideo.mp4; sourceTree = "<group>"; };
+        3105D103 /* Functionscreen.mov */ = {isa = PBXFileReference; lastKnownFileType = file; path = Media/Functionscreen.mov; sourceTree = "<group>"; };
 		3105A010 /* 3105.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "3105.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3105A020 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		3105A021 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -198,6 +202,8 @@
 				3105A021 /* ContentView.swift */,
                 3105D100 /* AppVideoBackground.swift */,
                 3105D101 /* MISBAH_Background.mp4 */,
+                3105D102 /* Keyauthvideo.mp4 */,
+                3105D103 /* Functionscreen.mov */,
 				3105A403 /* exploit */,
 				3105A404 /* views */,
 				3105A405 /* helpers */,
@@ -379,6 +385,8 @@
 				3105A211,
 				3105A228,
                 3105D201,
+                3105D202,
+                3105D203,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
