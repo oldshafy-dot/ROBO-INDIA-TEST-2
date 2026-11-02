@@ -16,8 +16,8 @@ struct PatchProjectsView: View {
     @State private var selectedCategory: PatchCategory = .ffIndia
 
     private enum PatchCategory: String, CaseIterable {
-        case ffIndia = "FF India"
-        case bgmi = "BGMI"
+        case ffIndia = "Free Fire Normal"
+        case bgmi = "Free Fire Max"
     }
 
     private var ffIndiaItems: [PatchLibraryItem] {
@@ -41,6 +41,7 @@ struct PatchProjectsView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
+                    functionsVideoBanner
                     categoryPicker
 
                     categorySection(
@@ -64,8 +65,8 @@ struct PatchProjectsView: View {
                         .background(
                             LinearGradient(
                                 colors: [
-                                    Color(red: 0.08, green: 0.30, blue: 0.55).opacity(0.70),
-                                    Color(red: 0.12, green: 0.48, blue: 0.82).opacity(0.42)
+                                    Color(red: 0.25, green: 0.14, blue: 0.42).opacity(0.70),
+                                    Color(red: 0.40, green: 0.24, blue: 0.62).opacity(0.42)
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -79,7 +80,7 @@ struct PatchProjectsView: View {
                     if let syncMessage {
                         Text(syncMessage)
                             .font(.caption)
-                            .foregroundStyle(Color(red: 0.45, green: 0.72, blue: 1.0))
+                            .foregroundStyle(Color(red: 0.66, green: 0.48, blue: 0.88))
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -91,9 +92,42 @@ struct PatchProjectsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .onAppear {
+                AppMediaController.shared.startFunctionAudio()
                 Task { await syncRemotePatchArchive() }
             }
         }
+    }
+
+    private var functionsVideoBanner: some View {
+        ZStack(alignment: .bottomLeading) {
+            LoopingVideoSurface(
+                resourceName: "Functionscreen",
+                fileExtension: "mov",
+                fallbackResourceName: "MISBAH_Background",
+                fallbackExtension: "mp4",
+                isMuted: true,
+                gravity: .resizeAspectFill
+            )
+            .frame(height: 174)
+
+            LinearGradient(
+                colors: [.clear, Color.black.opacity(0.58)],
+                startPoint: .center,
+                endPoint: .bottom
+            )
+
+            Text("BEST EXTERNAL")
+                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(13)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 174)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.gray.opacity(0.62), lineWidth: 1)
+        )
     }
 
     private var selectedItems: [PatchLibraryItem] {
@@ -116,7 +150,7 @@ struct PatchProjectsView: View {
                         .foregroundStyle(
                             selectedCategory == category
                                 ? .white
-                                : Color(red: 0.48, green: 0.72, blue: 1.0)
+                                : Color(red: 0.66, green: 0.48, blue: 0.88)
                         )
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
@@ -124,8 +158,8 @@ struct PatchProjectsView: View {
                             selectedCategory == category
                                 ? LinearGradient(
                                     colors: [
-                                        Color(red: 0.08, green: 0.38, blue: 0.72),
-                                        Color(red: 0.12, green: 0.52, blue: 0.86)
+                                        Color(red: 0.31, green: 0.18, blue: 0.50),
+                                        Color(red: 0.43, green: 0.27, blue: 0.66)
                                     ],
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -226,7 +260,7 @@ struct PatchProjectsView: View {
                     .background(
                         enabled
                             ? Color.green.opacity(0.90)
-                            : Color(red: 0.08, green: 0.38, blue: 0.72).opacity(0.90),
+                            : Color(red: 0.31, green: 0.18, blue: 0.50).opacity(0.90),
                         in: Capsule()
                     )
                 }
